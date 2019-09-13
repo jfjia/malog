@@ -92,7 +92,7 @@ protected:
 } // namespace malog
 
 #define MALOG_OPEN(NAME, BUFMB, ROTATEMB, POLICY) malog::open_log(NAME, BUFMB, ROTATEMB, POLICY)
-#define MALOG_OPEN_STDIO(BUFMB, ROTATEMB, POLICY) malog::open_log("@stdout", BUFMB, ROTATEMB, POLICY)
+#define MALOG_OPEN_STDIO(BUFMB, POLICY) malog::open_log("@stdout", BUFMB, 0, POLICY)
 #define MALOG_SET_LEVEL(LEVEL) malog::set_level(LEVEL)
 
 #ifndef MALOG_NO_STREAM
