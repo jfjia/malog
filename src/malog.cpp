@@ -10,7 +10,8 @@ inline bool should_log(Level level) {
 }
 
 void open_log(const char* file_name, std::size_t buf_mb, std::size_t rotate_mb, bool overflow_block) {
-    logger.reset(new Logger(file_name, buf_mb, rotate_mb, overflow_block));
+    std::size_t limit_items = buf_mb * 1024 * 1024 / DATA_SIZE;
+    logger.reset(new Logger(file_name, limit_items, rotate_mb, overflow_block));
 }
 
 Data* get_data(Level level) {

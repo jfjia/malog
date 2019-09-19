@@ -28,7 +28,7 @@ static const char* level_tag[] = {
 
 class DataPool {
 public:
-    DataPool(std::size_t limit_mb, bool overflow_block);
+    DataPool(std::size_t limit_items, bool overflow_block);
 
     void reclaim();
 
@@ -42,13 +42,15 @@ public:
         if (!overflow_block_) {
             return nullptr;
         } else {
-            pool_cond_.wait(l);
-            if (pool_.size() > 0) {
-                Data* data = pool_.back();
-                pool_.pop_back();
-                return data;
-            } else {
-                return nullptr;
+            while (true) {
+                pool_cond_.wait(l);
+                if (pool_.size() > 0) {
+                    Data* data = pool_.back();
+                    pool_.pop_back();
+                    return data;
+                } else {
+                    continue;
+                }
             }
         }
     }
@@ -56,6 +58,14 @@ public:
     void put(Data* data) {
         std::lock_guard<std::mutex> l(pool_lock_);
         pool_.push_back(data);
+        pool_cond_.notify_one();
+    }
+
+    void put(std::vector<Data* >& data) {
+        std::lock_guard<std::mutex> l(pool_lock_);
+        for (auto i : data) {
+            pool_.push_back(i);
+        }
         pool_cond_.notify_all();
     }
 
@@ -67,9 +77,8 @@ protected:
     Data* head_{ nullptr };
 };
 
-DataPool::DataPool(std::size_t limit_mb, bool overflow_block)
+DataPool::DataPool(std::size_t limit_items, bool overflow_block)
     : overflow_block_(overflow_block) {
-    std::size_t limit_items = limit_mb * 1024 * 1024 / DATA_SIZE;
     head_ = new Data[limit_items];
     Data* next = head_;
     for (std::size_t i = 0; i < limit_items; i++) {
@@ -90,7 +99,7 @@ public:
     }
 
     void open();
-    void write(Data* data);
+    void write(std::vector<Data* >& items);
 
     void flush() {
         fflush(fp_);
@@ -128,21 +137,23 @@ void FileWriter::open() {
     }
 }
 
-void FileWriter::write(Data* data) {
-    std::time_t time_t = data->ts / 1000000;
-    auto tm = std::localtime(&time_t);
-    int len = fprintf(fp_, "[%04d-%02d-%02d %02d:%02d:%02d.%06d] %.*s%.*s\n",
-                      tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-                      tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(data->ts % 1000000),
-                      level_tag_len, level_tag[data->level], (int)data->len, data->text);
-    if (len > 0) {
-        current_size_ += len;
-    }
-    if (data->level == LEVEL_ERROR) {
-        fflush(fp_);
-    }
-    if (rotate_size_ && current_size_ >= rotate_size_) {
-        rotate();
+void FileWriter::write(std::vector<Data* >& items) {
+    for (auto data : items) {
+        std::time_t t = data->ts / 1000000;
+        auto tm = std::localtime(&t);
+        int len = fprintf(fp_, "[%04d-%02d-%02d %02d:%02d:%02d.%06d] %.*s%.*s\n",
+                          tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+                          tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(data->ts % 1000000),
+                          level_tag_len, level_tag[data->level], (int)data->len, data->text);
+        if (len > 0) {
+            current_size_ += len;
+        }
+        if (data->level == LEVEL_ERROR) {
+            fflush(fp_);
+        }
+        if (rotate_size_ && current_size_ >= rotate_size_) {
+            rotate();
+        }
     }
 }
 
@@ -174,8 +185,9 @@ void FileWriter::rotate() {
 
 class Logger {
 public:
-    Logger(const std::string& file_name, std::size_t limit_mb, std::size_t rotate_mb, bool overflow_block)
-        : pool_(limit_mb, overflow_block), writer_(file_name, rotate_mb) {
+    Logger(const std::string& file_name, std::size_t limit_items, std::size_t rotate_mb, bool overflow_block)
+        : limit_items_(limit_items), pool_(limit_items, overflow_block), writer_(file_name, rotate_mb) {
+        items_.reserve(limit_items);
         write_thread_ = std::thread(&Logger::run, this);
     }
 
@@ -193,7 +205,6 @@ public:
 
 protected:
     void run();
-    void consume(std::vector<Data* >& items);
 
 protected:
     bool shut_{ false };
@@ -201,6 +212,7 @@ protected:
     std::condition_variable write_cond_;
     std::vector<Data* > items_;
     std::thread write_thread_;
+    std::size_t limit_items_;
     DataPool pool_;
     FileWriter writer_;
 };
@@ -219,6 +231,7 @@ void Logger::run() {
     writer_.open();
 
     std::vector<Data* > items;
+    items.reserve(limit_items_);
     while (true) {
         {
             std::unique_lock<std::mutex> l(write_lock_);
@@ -228,22 +241,19 @@ void Logger::run() {
             if (items_.empty()) {
                 writer_.flush();
                 write_cond_.wait(l);
+                continue;
             }
             std::swap(items, items_);
         }
-        consume(items);
+        writer_.write(items);
+        pool_.put(items);
+        items.clear();
     }
-    consume(items_);
+    writer_.write(items);
+    pool_.put(items);
+    items.clear();
 
     writer_.close();
-}
-
-void Logger::consume(std::vector<Data* >& items) {
-    for (auto i = items.begin(); i != items.end(); i++) {
-        writer_.write((*i));
-        pool_.put((*i));
-    }
-    items.clear();
 }
 
 } // namespace malog
