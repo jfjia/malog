@@ -3,7 +3,7 @@
 cd ../
 SUBDIRS="src examples "
 FILETYPES="*.h *.cpp"
-ASTYLE="astyle -A2 -HtUwpj -M80 -c -s4 --pad-header --align-pointer=type "
+ASTYLE="astyle -A2 -HtUwpj -M80 -c -s2 --pad-header --align-pointer=type "
 for d in ${SUBDIRS}
 do
     for t in ${FILETYPES}
