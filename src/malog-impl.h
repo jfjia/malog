@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <thread>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <sys/stat.h>
 #include <iostream>
