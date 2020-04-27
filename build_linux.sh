@@ -3,7 +3,7 @@ cd tools
 cd ..
 mkdir build_linux
 cd build_linux
-cmake ..
+cmake -DWITH_EXAMPLES=ON ..
 make clean
 make -j2 >1.log 2>2.log
 cd ..

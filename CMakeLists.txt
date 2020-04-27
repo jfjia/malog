@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(malog)
 
+option(WITH_EXAMPLES "build examples" OFF)
+
 enable_language(CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -29,4 +31,6 @@ endif()
 add_library(malog STATIC ${malog_SRC})
 target_include_directories(malog PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
-add_subdirectory(examples)
+if(WITH_EXAMPLES)
+    add_subdirectory(examples)
+endif()
