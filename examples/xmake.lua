@@ -1,0 +1,6 @@
+target("bench")
+    set_kind("binary")
+    add_files("bench.cpp")
+    set_warnings("all", "error")
+    set_languages("c++11")
+    add_deps("malog")
