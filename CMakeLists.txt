@@ -23,9 +23,9 @@ message("  CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_
 aux_source_directory(${PROJECT_SOURCE_DIR}/src malog_SRC)
 
 if(UNIX)
-    SET(DEPENDENT_LIBRARIES uv pthread)
+    SET(DEPENDENT_LIBRARIES pthread)
 else()
-    SET(DEPENDENT_LIBRARIES uv ws2_32)
+    SET(DEPENDENT_LIBRARIES ws2_32)
 endif()
 
 add_library(malog STATIC ${malog_SRC})

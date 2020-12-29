@@ -8,6 +8,7 @@
 #ifndef MALOG_NO_STREAM
 #include <sstream>
 #endif
+#include <iostream>
 
 namespace malog {
 
@@ -40,7 +41,7 @@ void set_level(Level level);
 void log_printf(Level level, const char* fmt, ...);
 
 inline uint64_t timestamp_now() {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 #ifndef MALOG_NO_STREAM

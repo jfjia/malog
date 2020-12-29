@@ -5,14 +5,12 @@
 #include "malog.h"
 
 void printf_log(int num, int id) {
-  std::cout << "printf_log(" << num << ", " << id << ")" << std::endl;
   for (int j = 0; j < num; j++) {
     malog_info("Hello logger_f: msg number %d, id=%d", j, id);
   }
 }
 
 void stream_log(int num, int id) {
-  std::cout << "stream_log(" << num << ", " << id << ")" << std::endl;
   for (int j = 0; j < num; j++) {
     MALOG_INFO("Hello logger_s: msg number " << j << ", id=" << id);
   }
