@@ -2,7 +2,7 @@
 
 namespace malog {
 
-std::unique_ptr<Logger> logger;
+std::unique_ptr<Logger> logger(new Logger("@stdout", 2, 0, true));
 std::atomic<uint16_t> threshold = { LEVEL_DEBUG };
 
 inline bool should_log(Level level) {
