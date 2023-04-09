@@ -93,22 +93,21 @@ protected:
   std::vector<Data* > pool_;
   std::condition_variable pool_cond_;
   bool overflow_block_;
-  Data* head_{ nullptr };
+  std::unique_ptr<char> buffer_;
 };
 
 DataPool::DataPool(std::size_t limit_items, bool overflow_block)
-  : overflow_block_(overflow_block) {
-  head_ = new Data[limit_items];
-  Data* next = head_;
+  : overflow_block_(overflow_block), buffer_(new char[limit_items * DATA_SIZE]) {
+  char* next = buffer_.get();
   for (std::size_t i = 0; i < limit_items; i++) {
-    pool_.push_back(next);
-    next ++;
+    pool_.push_back((Data*)next);
+    next += DATA_SIZE;
   }
 }
 
 void DataPool::reclaim() {
   pool_.clear();
-  delete head_;
+  buffer_.reset();
 }
 
 

@@ -38,14 +38,14 @@ void log_printf(Level level, const char* fmt, ...) {
     data->ts = timestamp_now();
     va_list args;
     va_start(args, fmt);
-    int len = vsnprintf(data->text, sizeof(data->text), fmt, args);
+    int len = vsnprintf(data->text, DATA_TEXT_SIZE, fmt, args);
     va_end(args);
     if (len < 0) {
       data->len = 0;
     } else {
       data->len = static_cast<uint16_t>(len);
-      if (data->len > sizeof(data->text)) {
-        data->len = sizeof(data->text);
+      if (data->len > DATA_TEXT_SIZE) {
+        data->len = DATA_TEXT_SIZE;
       }
     }
     deliver_log(data);

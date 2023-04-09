@@ -11,15 +11,16 @@
 namespace malog {
 
 static const int DATA_SIZE = 256;
-static const int DATA_TEXT_SIZE = (DATA_SIZE - 2 * sizeof(uint16_t) - sizeof(uint32_t) - sizeof(uint64_t));
 
 struct Data {
   uint16_t level;
   uint16_t len;
   uint32_t reserved;
   uint64_t ts;
-  char text[DATA_TEXT_SIZE]; // formatted text
+  char text[0]; // formatted text
 };
+
+static const int DATA_TEXT_SIZE = (DATA_SIZE - sizeof(Data));
 
 enum Level {
   LEVEL_OFF = 0, // discard all
@@ -46,7 +47,7 @@ void deliver_log(Data* data);
 class LineBuffer : public std::streambuf {
 public:
   LineBuffer(Data* data) {
-    setp(data->text, data->text + sizeof(data->text));
+    setp(data->text, data->text + DATA_TEXT_SIZE);
   }
 
   uint16_t text_len() {
