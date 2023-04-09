@@ -27,6 +27,7 @@ void set_level(Level level) {
 }
 
 void deliver_log(Data* data) {
+  data->ts = timestamp_now();
   logger->put(data);
 }
 

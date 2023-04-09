@@ -3,7 +3,7 @@ cd tools
 cd ..
 mkdir build_mingw
 cd build_mingw
-cmake -DWITH_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" ..
-make clean
-make -j2 >1.log 2>2.log
+cmake -DWITH_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Release -G "MinGW Makefiles" ..
+mingw32-make clean
+mingw32-make -j2 >1.log 2>2.log
 cd ..

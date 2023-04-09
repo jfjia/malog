@@ -1,6 +1,7 @@
 #ifndef MALOG_IMPL_H
 #define MALOG_IMPL_H
 
+#include <chrono>
 #include <atomic>
 #include <memory>
 #include <cstdarg>
@@ -39,6 +40,10 @@ static const int line_max_len = ts_tag_len + level_tag_len + DATA_TEXT_SIZE + 1;
 #else
 static const int line_max_len = ts_tag_len + level_tag_len + DATA_TEXT_SIZE + 2;
 #endif
+
+inline uint64_t timestamp_now() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
 
 class DataPool {
 public:
