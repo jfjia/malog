@@ -32,12 +32,14 @@ enum Level {
 
 void open_log(const char* file_name, // file name or "@stdout"
               std::size_t fifo_mb,   // fifo buffer size
-              std::size_t roate_mb,  // old log file rename to file_name.YYYYMMDD-HHMMSS.xxxxxx
+              std::size_t rotate_mb,  // old log file rename to file_name.YYYYMMDD-HHMMSS.xxxxxx
               bool overflow_block);  // 'false' - drop, 'true' - block producer
 
 void set_level(Level level);
 
 void log_printf(Level level, const char* fmt, ...);
+
+void shutdown();
 
 #ifndef MALOG_NO_STREAM
 Data* get_data(Level level);

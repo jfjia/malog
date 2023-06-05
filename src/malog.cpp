@@ -52,4 +52,8 @@ void log_printf(Level level, const char* fmt, ...) {
   }
 }
 
+void shutdown() {
+  logger.reset();
+}
+
 } // namespace malog
